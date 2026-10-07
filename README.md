@@ -26,6 +26,12 @@ Github Repo: <a href="https://github.com/interledger/open-payments-php" target="
 composer install
 ```
 
+If you installed the dependencies before, update the Open Payments library to v1.2 or later:
+
+```
+composer update interledger/open-payments-php
+```
+
 Make the Console File Executable:
 
 ```
@@ -80,6 +86,8 @@ Run the Application:
 | `grant:ip`                            | Outputs an incoming payment object with the access_token for the request    |
 | `grant:op`                            | Outputs an outgoing payment object with the access_token for the request    |
 | `grant:quote`                         | Outputs a quote object with the access_token for the request                |
+| `grant:verify-ownership`              | Request a grant to verify that the user owns a wallet address               |
+| `grant:verify-ownership:continuation` | Continue the verify ownership grant and output the verified wallet address  |
 | `ip:complete`                         | Complete an incoming payment                                                |
 | `ip:create`                           | Create an incoming payment                                                  |
 | `ip:get`                              | Get an incoming payment                                                     |
@@ -87,6 +95,7 @@ Run the Application:
 | `op:create`                           | Create an outgoing payment                                                  |
 | `op:create:amount`                    | Create an outgoing payment with a specific amount                           |
 | `op:get`                              | Get an outgoing payment                                                     |
+| `op:grant-spent-amounts`              | Get the spent amounts for the current outgoing payment grant                |
 | `op:list`                             | List outgoing payments                                                      |
 | `quote:create`                        | Create a quote                                                              |
 | `quote:get`                           | Get a quote                                                                 |
@@ -143,6 +152,9 @@ Run the Application:
    - Argument: OUTGOING_PAYMENT_GRANT_ACCESS_TOKEN Access token for the outgoing payment received from the outgoing payment grant.
    - Argument: OUTGOING_PAYMENT_URL The url of the outgoing payment.
 
+➤ op:grant-spent-amounts: This command is used to get the spent amounts for the current outgoing payment grant.
+   - Argument: OUTGOING_PAYMENT_GRANT_ACCESS_TOKEN Access token for the outgoing payment received from the outgoing payment grant.
+
 ➤ op:list: This command is used to list outgoing payments.
    - Argument: OUTGOING_PAYMENT_GRANT_ACCESS_TOKEN Access token for the outgoing payment received from the outgoing payment grant.
 
@@ -168,6 +180,16 @@ Run the Application:
    - Argument: CONTINUE_ACCESS_TOKEN The value of CONTINUE_ACCESS_TOKEN
    - Argument: URL_WITH_INTERACT_REF The value of URL_WITH_INTERACT_REF
    - Argument: CONTINUE_URI The value of CONTINUE_URI
+
+➤ grant:verify-ownership: Requests a grant to verify that the user owns a wallet address.
+   - Argument: USER_WALLET_ADDRESS The wallet address the user says they own. Default: WALLET_ADDRESS from .env
+
+➤ grant:verify-ownership:continuation: Continues the verify ownership grant and outputs the verified wallet address.
+   - Argument: CONTINUE_ACCESS_TOKEN The value of CONTINUE_ACCESS_TOKEN received from grant:verify-ownership
+   - Argument: URL_WITH_INTERACT_REF The url where we get redirected after the user approved the grant
+   - Argument: CONTINUE_URI The value of CONTINUE_URI received from grant:verify-ownership
+   - Argument: USER_WALLET_ADDRESS The wallet address the user says they own. Default: WALLET_ADDRESS from .env
+   The command checks that the auth server returned this wallet address, and that CONTINUE_URI has the same scheme and host as its auth server.
 
 ➤ grant:cancel: Cancel a grant.
    - Argument: ACCESS_TOKEN The value of ACCESS_TOKEN
@@ -202,6 +224,8 @@ app/
 │   │   │   └── GrantOutgoingPayment.php
 │   │   │   └── GrantOutgoingPaymentInterval.php
 │   │   │   └── GrantQuote.php
+│   │   │   └── GrantVerifyOwnership.php
+│   │   │   └── GrantVerifyOwnershipContinuation.php
 │   │   ├── IncomingPayment/
 │   │   │   └── IncomingPaymentComplete.php
 │   │   │   └── IncomingPaymentCreate.php
@@ -212,6 +236,7 @@ app/
 │   │   │   └── OutgoingPaymentCreate.php
 │   │   │   └── OutgoingPaymentCreateAmount.php
 │   │   │   └── OutgoingPaymentGet.php
+│   │   │   └── OutgoingPaymentGrantSpentAmounts.php
 │   │   │   └── OutgoingPaymentList.php
 │   │   └── Quote/
 │   │   │   └── QuoteCreate.php

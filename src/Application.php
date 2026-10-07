@@ -9,6 +9,8 @@ use App\Command\ExtendedListCommand;
 use App\Command\Grant\GrantIncomingPayment;
 use App\Command\Grant\GrantContinuation;
 use App\Command\Grant\CancelGrant;
+use App\Command\Grant\GrantVerifyOwnership;
+use App\Command\Grant\GrantVerifyOwnershipContinuation;
 
 use App\Command\IncomingPayment\IncomingPaymentCreate;
 use App\Command\IncomingPayment\IncomingPaymentGet;
@@ -21,6 +23,7 @@ use App\Command\OutgoingPayment\OutgoingPaymentCreate;
 use App\Command\OutgoingPayment\OutgoingPaymentCreateAmount;
 use App\Command\OutgoingPayment\OutgoingPaymentGet;
 use App\Command\OutgoingPayment\OutgoingPaymentList;
+use App\Command\OutgoingPayment\OutgoingPaymentGrantSpentAmounts;
 
 use App\Command\Grant\GrantQuote;
 use App\Command\Quote\QuoteCreate;
@@ -59,6 +62,7 @@ class Application
         $application->add(new OutgoingPaymentCreateAmount());
         $application->add(new OutgoingPaymentGet());
         $application->add(new OutgoingPaymentList());
+        $application->add(new OutgoingPaymentGrantSpentAmounts());
 
         $application->add(new GrantQuote());
         $application->add(new QuoteCreate());
@@ -71,6 +75,8 @@ class Application
 
         $application->add(new GrantContinuation());
         $application->add(new CancelGrant());
+        $application->add(new GrantVerifyOwnership());
+        $application->add(new GrantVerifyOwnershipContinuation());
 
         $application->add(new FetchQuoteAndInitializePayment());
         $application->add(new FinalizePayment());
