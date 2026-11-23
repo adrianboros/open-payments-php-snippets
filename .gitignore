@@ -29,3 +29,6 @@ ehthumbs.db
 *.log
 /tmp/
 /*.temp
+
+# Docker
+/docker/standin/keys/
