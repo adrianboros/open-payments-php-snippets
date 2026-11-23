@@ -1,0 +1,5 @@
+.env
+.env.*
+vendor/
+docker/standin/keys/
+.git/

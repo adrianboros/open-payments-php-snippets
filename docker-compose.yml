@@ -1,0 +1,71 @@
+# Docker Desktop (macOS, Windows). php-dassie reaches the host through host.docker.internal.
+#
+# php        - snippets with the library installed in vendor/
+# php-pr     - same, with the library's lib/ replaced by a local checkout (LIB_PATH)
+# php-dassie - like php-pr, for Dassie dev nodes on this machine (DASSIE_PATH)
+# standin    - small wallet address + auth server for local signature checks
+x-php: &php
+  build: .
+  image: open-payments-php-snippets:php8.6
+
+x-app: &app
+  type: bind
+  source: .
+  target: /app
+
+x-lib: &lib
+  type: bind
+  source: ${LIB_PATH:-../open-payments-php}/lib
+  target: /app/vendor/interledger/open-payments-php/lib
+  read_only: true
+  bind:
+    create_host_path: false
+
+services:
+  php:
+    <<: *php
+    volumes: [*app]
+    networks: [op]
+
+  php-pr:
+    <<: *php
+    volumes: [*app, *lib]
+    networks: [op]
+
+  # curl resolves dN.localhost to 127.0.0.1 itself, so php-dassie shares the network
+  # of dassie-fwd, which forwards the nodes' HTTPS ports on its loopback to the host.
+  dassie-fwd:
+    image: alpine/socat:1.8.0.3
+    entrypoint: ["sh", "-c"]
+    command:
+      - for p in 5001 5002; do socat TCP-LISTEN:$$p,bind=127.0.0.1,fork,reuseaddr TCP:host.docker.internal:$$p & done; wait
+
+  php-dassie:
+    <<: *php
+    entrypoint: ["php", "-d", "curl.cainfo=/certs/dassie-ca.pem", "-d", "openssl.cafile=/certs/dassie-ca.pem"]
+    network_mode: service:dassie-fwd
+    depends_on: [dassie-fwd]
+    volumes:
+      - *app
+      - *lib
+      - type: bind
+        source: ${DASSIE_PATH:-../dassie}/local/dev/tls/ca.pem
+        target: /certs/dassie-ca.pem
+        read_only: true
+        bind:
+          create_host_path: false
+
+  standin:
+    build: docker/standin
+    volumes:
+      - ./docker/standin/keys:/keys
+    healthcheck:
+      test: ["CMD", "test", "-f", "/keys/standin.env"]
+      interval: 1s
+      retries: 30
+    networks:
+      op:
+        aliases: [wallet, auth]
+
+networks:
+  op:

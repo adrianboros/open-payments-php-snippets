@@ -63,6 +63,42 @@ begin utilizing the php code snippets library.
 
 
 
+### 🐳 Docker
+
+The image uses the latest PHP (8.6) with the needed extensions. The setup is for Docker Desktop (macOS, Windows). Run the commands from the repository root.
+
+The commands still read `.env`, so create it first (see [Loading the private key](#loading-the-private-key)). If a value in `.env` has a `$`, put the value in single quotes. Otherwise Compose tries to read it as a variable and prints a warning.
+
+```
+docker compose build php
+docker compose run --rm --entrypoint composer php install
+docker compose run --rm php grant:ip
+```
+
+To run the snippets against a local checkout of the library (for example a PR branch), set `LIB_PATH` and use the `php-pr` service. It mounts that checkout's `lib/` over the one in `vendor/`. The default is `../open-payments-php`:
+
+```
+LIB_PATH=../open-payments-php docker compose run --rm php-pr grant:ip
+```
+
+The `standin` service is a small wallet address and auth server. It checks signatures with `@interledger/http-signature-utils`, the same way Rafiki 1.x does. On first start it writes a key pair to `docker/standin/keys/standin.env`. The commands below run in a subshell, so the key does not stay in your shell:
+
+```
+docker compose up -d --wait standin
+(set -a; . docker/standin/keys/standin.env; docker compose run --rm -e WALLET_ADDRESS=http://wallet/alice-root -e PRIVATE_KEY -e KEY_ID php grant:ip)
+docker compose logs standin
+```
+
+Wallet addresses: `alice-root` (`authServer` without a path, like Rafiki 1.x), `alice-tenant` (with a path, like Rafiki 2.x) and `alice-port` (without a path, on port 3006).
+
+To test against local Dassie dev nodes, start them in the Dassie checkout (`node --run dev`). Set `DASSIE_PATH` if the checkout is not `../dassie`. The `php-dassie` service trusts the Dassie dev CA and reaches `d1.localhost:5001` and `d2.localhost:5002` through `dassie-fwd`. `docker/dassie/grant-jwk.php` asks for a grant with a `jwk` client, then creates an incoming payment and reads it back:
+
+```
+docker compose up -d dassie-fwd
+(set -a; . docker/standin/keys/standin.env; docker compose run --rm -e PRIVATE_KEY -e KEY_ID php-dassie docker/dassie/grant-jwk.php https://d1.localhost:5001/pay/usd)
+```
+
+
 ### ⚙️ Usage
 
 Run the Application:
